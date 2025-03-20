@@ -234,10 +234,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           IconButton(
             icon: Icon(Icons.download),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ExportCSVScreen()),
-              );
+              exportToCSV(context); // ✅ Call function from separate file
             },
           ),
         ],
