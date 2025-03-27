@@ -106,6 +106,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome to our app!'**
   String get welcome_message;
+
+  String get mandatory;
+  String get choose_language;
+  String get settings;
+
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'dart:convert';
 import 'field_model.dart';
+import 'package:collectionapp/l10n/app_localizations.dart' show AppLocalizations;
 
 class SettingsScreen extends StatefulWidget {
-  @override
+  final Function(Locale) changeLanguage;
+
+  const SettingsScreen({Key? key, required this.changeLanguage}) : super(key: key);  @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
 
@@ -288,12 +291,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.settings),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              AppLocalizations.of(context)!.choose_language,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            DropdownButton<Locale>(
+              value: Localizations.localeOf(context),
+              items: const [
+                DropdownMenuItem(value: Locale('en'), child: Text('English')),
+                DropdownMenuItem(value: Locale('ta'), child: Text('தமிழ்')),
+              ],
+              onChanged: (Locale? newLocale) {
+                if (newLocale != null) {
+                  widget.changeLanguage(newLocale);
+                }
+              },
+            ),
+            const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                 itemCount: fields.length,
@@ -305,34 +328,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (field.isMandatory)
-                          Text('Mandatory',
-                              style: TextStyle(color: Colors.red)),
-                        if (field.type == 'Dropdown' &&
-                            field.options.isNotEmpty)
-                          Text('Options: ${field.options.join(', ')}'),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editField(index),
-                        ),
-                        if (!fixedFields.contains(field.name))
-                          IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteField(index),
+                          Text(
+                            AppLocalizations.of(context)!.mandatory,
+                            style: TextStyle(color: Colors.red),
                           ),
+                        if (field.type == 'Dropdown' && field.options.isNotEmpty)
+                          Text('Options: ${field.options.join(', ')}'),
                       ],
                     ),
                   );
                 },
               ),
-            ),
-            ElevatedButton(
-              onPressed: _addNewField,
-              child: Text('Add New Field'),
             ),
           ],
         ),

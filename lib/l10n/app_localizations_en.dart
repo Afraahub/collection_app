@@ -13,4 +13,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcome_message => 'Welcome to our app!';
+
+  @override
+  String get mandatory => 'Mandatory';
+
+  @override
+  String get choose_language => 'Choose Language';
+
+  @override
+  String get settings => 'Settings';
 }

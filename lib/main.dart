@@ -1,4 +1,3 @@
-import 'package:collectionapp/l10n/app_localizations.dart' show AppLocalizations;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -18,7 +17,7 @@ import 'dart:typed_data'; // For handling bytes
 import 'dart:ui' show kIsWeb; // Import for kIsWeb
 import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // For WebView
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:collectionapp/generated/l10n.dart';
+import 'package:collectionapp/l10n/app_localizations.dart' show AppLocalizations;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,12 +35,23 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 1;
+  Locale _appLocale = const Locale('en'); // Default Language
 
-  final List<Widget> _screens = [
-    SettingsScreen(),
-    CollectionScreen(),
-    ReportsScreen(),
-  ];
+  final List<Widget> _screens = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _screens.add(SettingsScreen(changeLanguage: _changeLanguage));
+    _screens.add(CollectionScreen());
+    _screens.add(ReportsScreen());
+  }
+
+  void _changeLanguage(Locale newLocale) {
+    setState(() {
+      _appLocale = newLocale;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -53,7 +63,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Localized App',
+      title: 'Collection App',
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.system,
@@ -67,6 +77,7 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      locale: _appLocale,
       localeResolutionCallback: (locale, supportedLocales) {
         for (var supportedLocale in supportedLocales) {
           if (supportedLocale.languageCode == locale?.languageCode) {
@@ -80,7 +91,7 @@ class _MyAppState extends State<MyApp> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
-          items: [
+          items: const [
             BottomNavigationBarItem(
                 icon: Icon(Icons.settings), label: 'Settings'),
             BottomNavigationBarItem(
@@ -93,6 +104,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
 
 class CollectionScreen extends StatefulWidget {
   @override

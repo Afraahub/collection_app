@@ -13,4 +13,13 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get welcome_message => 'எங்கள் பயன்பாட்டிற்கு வரவேற்கிறோம்!';
+
+  @override
+  String get mandatory => 'கட்டாயம்';
+
+  @override
+  String get choose_language => 'மொழியை தேர்வு செய்க';
+
+  @override
+  String get settings => 'அமைப்புகள்';
 }
