@@ -1,10 +1,10 @@
-name: collection_app
+name: collectionapp
 description: A new Flutter project.
 
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   csv: ^5.0.2
@@ -14,15 +14,21 @@ dependencies:
     sdk: flutter
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  intl: ^0.19.0          # Updated to latest version for localization
-  flutter_localizations: # Required for i18n
+  intl: any
+  flutter_localizations:
     sdk: flutter
-    
+  flutter_gen: ^5.10.0
+  flutter_inappwebview: ^6.1.5
+  pdf: ^3.11.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  intl_translation: ^0.20.0  # Add this for manual generation
+  intl_utils: ^2.8.5
+  flutter_gen_runner: ^5.3.2
 flutter:
   uses-material-design: true
-     
+  generate: true
+  assets:
+    - assets/

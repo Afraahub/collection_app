@@ -1,12 +1,11 @@
+import 'package:collectionapp/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:collection_app/main.dart'; 
 
 void main() {
   testWidgets('Collection App UI Test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
-// Removed 'const'
+    await tester.pumpWidget(MyApp()); // Ensure MyApp exists in main.dart
 
     // Verify that the text fields are present.
     expect(find.byType(TextFormField), findsNWidgets(5));

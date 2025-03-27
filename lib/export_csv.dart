@@ -25,8 +25,7 @@ Future<void> exportToCSV(BuildContext context) async {
 
   for (var item in storedData) {
     Map<String, String> entry = Map<String, String>.from(
-      item.map((key, value) => MapEntry(key.toString(), value.toString()))
-    );
+        item.map((key, value) => MapEntry(key.toString(), value.toString())));
 
     csvData.add([
       entry["Name"] ?? "",

@@ -19,12 +19,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     'DateTime',
     'Dropdown'
   ];
+  final List<String> fixedFields = ['Name', 'Amount'];
 
   final List<FieldModel> defaultFields = [
     FieldModel(name: 'Name', type: 'Text', isMandatory: true),
-    FieldModel(name: 'Age', type: 'Number', isMandatory: true),
-    FieldModel(name: 'Number', type: 'Number', isMandatory: true),
-    FieldModel(name: 'Amount', type: 'Number', isMandatory: false),
+    FieldModel(name: 'Amount', type: 'Number', isMandatory: true),
+    FieldModel(name: 'Age', type: 'Number', isMandatory: false),
+    FieldModel(name: 'Number', type: 'Number', isMandatory: false),
     FieldModel(name: 'Address', type: 'Text', isMandatory: false),
   ];
 
@@ -38,24 +39,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     settingsBox = Hive.box<String>('settings');
     String? storedFields = settingsBox.get('fields');
 
-    if (storedFields != null && storedFields.isNotEmpty) {
+    if (storedFields == null || storedFields.isEmpty) {
+      _resetToDefaultFields();
+    } else {
       try {
+        List<dynamic> decodedFields = jsonDecode(storedFields);
         setState(() {
-          fields = (jsonDecode(storedFields) as List)
-              .map((e) => FieldModel.fromJson(e))
-              .toList();
+          fields = decodedFields.map((e) => FieldModel.fromJson(e)).toList();
+          print("Loaded fields: $fields"); // Debug print
         });
+        _ensureFixedFieldsPosition();
       } catch (e) {
+        print("Error loading fields: $e"); // Debug print
         _resetToDefaultFields();
       }
-    } else {
-      _resetToDefaultFields();
     }
   }
 
   void _resetToDefaultFields() {
     setState(() {
       fields = defaultFields;
+      print("Reset to default fields: $fields"); // Debug print
     });
     _saveFields();
   }
@@ -63,6 +67,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _saveFields() {
     settingsBox.put(
         'fields', jsonEncode(fields.map((e) => e.toJson()).toList()));
+    print("Saved fields to Hive: ${settingsBox.get('fields')}"); // Debug print
+  }
+
+  void _ensureFixedFieldsPosition() {
+    setState(() {
+      fields.sort((a, b) {
+        if (a.name == "Name") return -1;
+        if (b.name == "Name") return 1;
+        if (a.name == "Amount") return -1;
+        if (b.name == "Amount") return 1;
+        return 0;
+      });
+    });
   }
 
   void _addNewField() {
@@ -81,6 +98,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextEditingController(text: editingField?.name ?? '');
     String selectedType = editingField?.type ?? fieldTypes[0];
     bool isMandatory = editingField?.isMandatory ?? false;
+    List<String> dropdownOptions = List.from(editingField?.options ?? []);
+    TextEditingController optionController = TextEditingController();
+    String? errorText;
 
     showDialog(
       context: context,
@@ -89,39 +109,100 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (context, setStateDialog) {
             return AlertDialog(
               title: Text(title),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: fieldNameController,
-                    decoration: InputDecoration(hintText: 'Enter field name'),
+              content: SizedBox(
+                width: 300, // Reduced width from double.maxFinite
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: fieldNameController,
+                        maxLength: 30,
+                        decoration: InputDecoration(
+                          hintText: 'Enter field name',
+                          errorText: errorText,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        value: selectedType,
+                        items: fieldTypes
+                            .map((type) => DropdownMenuItem(
+                                value: type, child: Text(type)))
+                            .toList(),
+                        onChanged: (value) {
+                          setStateDialog(() {
+                            selectedType = value!;
+                            if (selectedType != 'Dropdown') {
+                              dropdownOptions.clear();
+                            }
+                          });
+                        },
+                        decoration: InputDecoration(labelText: 'Field Type'),
+                      ),
+                      SizedBox(height: 10),
+                      SwitchListTile(
+                        title: Text('Mandatory'),
+                        value: isMandatory,
+                        onChanged: (value) {
+                          setStateDialog(() {
+                            isMandatory = value;
+                          });
+                        },
+                      ),
+                      if (selectedType == 'Dropdown') ...[
+                        SizedBox(height: 10),
+                        Text('Dropdown Options',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(height: 5),
+                        Container(
+                          constraints: BoxConstraints(maxHeight: 150),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: dropdownOptions.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                title: Text(dropdownOptions[index]),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () {
+                                    setStateDialog(() {
+                                      dropdownOptions.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: optionController,
+                                decoration:
+                                    InputDecoration(hintText: 'Enter option'),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                if (optionController.text.trim().isNotEmpty) {
+                                  setStateDialog(() {
+                                    dropdownOptions
+                                        .add(optionController.text.trim());
+                                    optionController.clear();
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
-                  SizedBox(height: 10),
-                  DropdownButtonFormField<String>(
-                    value: selectedType,
-                    items: fieldTypes
-                        .map((type) =>
-                            DropdownMenuItem(value: type, child: Text(type)))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setStateDialog(() {
-                          selectedType = value;
-                        });
-                      }
-                    },
-                    decoration: InputDecoration(labelText: 'Field Type'),
-                  ),
-                  SwitchListTile(
-                    title: Text('Mandatory'),
-                    value: isMandatory,
-                    onChanged: (value) {
-                      setStateDialog(() {
-                        isMandatory = value;
-                      });
-                    },
-                  ),
-                ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -131,23 +212,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 TextButton(
                   onPressed: () {
                     String fieldName = fieldNameController.text.trim();
-                    if (fieldName.isNotEmpty) {
-                      setState(() {
-                        if (isEdit) {
-                          fields[fieldIndex!] = FieldModel(
-                              name: fieldName,
-                              type: selectedType,
-                              isMandatory: isMandatory);
-                        } else {
-                          fields.add(FieldModel(
-                              name: fieldName,
-                              type: selectedType,
-                              isMandatory: isMandatory));
-                        }
-                        _saveFields();
+
+                    if (fieldName.isEmpty) {
+                      setStateDialog(() {
+                        errorText = "Field name cannot be empty";
                       });
-                      Navigator.pop(context);
+                      return;
                     }
+
+                    bool isDuplicate = fields.any((field) =>
+                        field.name.toLowerCase() == fieldName.toLowerCase() &&
+                        (!isEdit || fields[fieldIndex!].name != fieldName));
+
+                    if (isDuplicate) {
+                      setStateDialog(() {
+                        errorText = "Field name already exists";
+                      });
+                      return;
+                    }
+
+                    if (selectedType == 'Dropdown' && dropdownOptions.isEmpty) {
+                      setStateDialog(() {
+                        errorText = "Dropdown must have at least one option";
+                      });
+                      return;
+                    }
+
+                    setState(() {
+                      if (isEdit) {
+                        fields[fieldIndex!] = FieldModel(
+                          name: fieldName,
+                          type: selectedType,
+                          isMandatory: isMandatory,
+                          options:
+                              selectedType == 'Dropdown' ? dropdownOptions : [],
+                        );
+                      } else {
+                        fields.add(FieldModel(
+                          name: fieldName,
+                          type: selectedType,
+                          isMandatory: isMandatory,
+                          options:
+                              selectedType == 'Dropdown' ? dropdownOptions : [],
+                        ));
+                      }
+                      _ensureFixedFieldsPosition();
+                      _saveFields();
+                    });
+                    Navigator.pop(context);
                   },
                   child: Text(isEdit ? 'Update' : 'Add'),
                 ),
@@ -160,14 +272,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _deleteField(int index) {
-    // Prevent deletion of default fields
-    if (index < defaultFields.length) {
+    FieldModel field = fields[index];
+    if (fixedFields.contains(field.name)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Cannot delete default fields")),
+        SnackBar(content: Text("${field.name} cannot be deleted.")),
       );
       return;
     }
-
     setState(() {
       fields.removeAt(index);
       _saveFields();
@@ -190,9 +301,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   FieldModel field = fields[index];
                   return ListTile(
                     title: Text('${field.name} (${field.type})'),
-                    subtitle: field.isMandatory
-                        ? Text('Mandatory', style: TextStyle(color: Colors.red))
-                        : null,
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (field.isMandatory)
+                          Text('Mandatory',
+                              style: TextStyle(color: Colors.red)),
+                        if (field.type == 'Dropdown' &&
+                            field.options.isNotEmpty)
+                          Text('Options: ${field.options.join(', ')}'),
+                      ],
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -200,10 +319,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: Icon(Icons.edit, color: Colors.blue),
                           onPressed: () => _editField(index),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteField(index),
-                        ),
+                        if (!fixedFields.contains(field.name))
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteField(index),
+                          ),
                       ],
                     ),
                   );
