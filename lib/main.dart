@@ -35,7 +35,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 1;
-  Locale _appLocale = const Locale('en'); // Default Language
+  Locale _appLocale =  Locale('en'); // Default Language
 
   final List<Widget> _screens = [];
 
@@ -47,9 +47,9 @@ class _MyAppState extends State<MyApp> {
     _screens.add(ReportsScreen());
   }
 
-  void _changeLanguage(Locale newLocale) {
+  void _changeLanguage(Locale locale) {
     setState(() {
-      _appLocale = newLocale;
+      _appLocale = locale;
     });
   }
 
