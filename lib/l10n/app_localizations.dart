@@ -40,34 +40,24 @@ abstract class AppLocalizations {
   String get choose_language;
   String get settings;
   String get name;
-  String get amount;
-  String get age;
-  String get number;
+  String get mobileNumber;
+  String get occupation;
   String get address;
-  String get date;
-  String get datetime;
-  String get dropdown;
-  String get recent_collection;
-  String get today;
-  String get yesterday;
-  String get previous_collection;
-  String get this_week;
-  String get this_month;
-  String get total;
-  String get save;
-  String get cancel;
-  String get confirm;
-  String get edit;
-  String get delete;
-  String get search;
-  String get no_data;
-  String get error;
-  String get success;
-  String get loading;
-  String get please_wait;
-  String get change_language;
+  String get amount;
+
 
   get reports => null;
+
+  get options => null;
+
+  get text => null;
+
+  get age => null;
+
+  String cannot_delete_field(String name) {
+  return "$name cannot be deleted."; // Ensure a valid return value
+}
+
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -87,9 +77,12 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'ta': return AppLocalizationsTa();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'ta':
+      return AppLocalizationsTa();
+    default:
+      return AppLocalizationsEn(); // Fallback to English instead of throwing an error
   }
-  throw FlutterError('Unsupported locale "$locale".');
 }
 
