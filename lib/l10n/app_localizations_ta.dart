@@ -7,7 +7,7 @@ import 'app_localizations.dart';
 /// The translations for Tamil (`ta`).
 class AppLocalizationsTa extends AppLocalizations {
   AppLocalizationsTa([String locale = 'ta']) : super(locale);
-
+  
   @override
   String get hello => 'வணக்கம்';
 
@@ -121,4 +121,43 @@ String get failed_to_export_csv => 'CSV ஏற்றுமதி செய்ய
 
 @override
 String get no_data_available => 'தரவு இல்லை';
+
+@override
+  String get addField => 'புதிய புலத்தை சேர்க்கவும்';
+
+  @override
+  String get editField => 'புலத்தை திருத்தவும்';
+
+  @override
+  String get enterFieldName => 'புலத்தின் பெயரை உள்ளிடவும்';
+
+  @override
+  String get fieldType => 'புல வகை';
+
+  @override
+  String get dropdownOptions => 'கீழ்தோன்றும் விருப்பங்கள்';
+
+  @override
+  String get enterOption => 'விருப்பத்தை உள்ளிடவும்';
+
+  @override
+  String get cancel => 'ரத்துசெய்';
+
+  @override
+  String get update => 'புதுப்பிக்க';
+
+  @override
+  String get add => 'சேர்';
+
+  @override
+  String get fieldNameEmpty => 'புலத்தின் பெயர் காலியாக இருக்க முடியாது';
+
+  @override
+  String get fieldExists => 'இந்த பெயர் ஏற்கனவே உள்ளது';
+
+  @override
+  String get dropdownEmpty => 'கீழ்தோன்றும் பட்டியலில் குறைந்தது ஒரு விருப்பம் இருக்க வேண்டும்';
+
+  @override
+  String get fieldCannotBeDeleted => 'புலத்தை நீக்க முடியாது.';
 }

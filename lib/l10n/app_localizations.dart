@@ -11,7 +11,7 @@ abstract class AppLocalizations {
   AppLocalizations(this.locale);
 
   final String locale;
-
+  
   static Future<AppLocalizations> load(Locale locale) async {
     switch (locale.languageCode) {
       case 'ta':
@@ -20,6 +20,7 @@ abstract class AppLocalizations {
       default:
         return AppLocalizationsEn();
     }
+    
   }
 
   static AppLocalizations of(BuildContext context) {
@@ -66,6 +67,19 @@ abstract class AppLocalizations {
   String get report_exported_to;
   String get failed_to_export_csv;
   String get no_data_available;
+  String get editField;
+  String get addField;
+  String get enterFieldName;
+  String get fieldType;
+  String get dropdownOptions;
+  String get enterOption;
+  String get cancel;
+  String get fieldNameEmpty;
+  String get fieldExists;
+  String get dropdownEmpty;
+  String get update;
+  String get add;
+  String get fieldCannotBeDeleted;
   }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

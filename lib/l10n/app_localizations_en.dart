@@ -116,4 +116,43 @@ String get failed_to_export_csv => 'Failed to export CSV';
 
 @override
 String get no_data_available => 'No data available';
+
+@override
+  String get addField => 'Add New Field';
+
+  @override
+  String get editField => 'Edit Field';
+
+  @override
+  String get enterFieldName => 'Enter field name';
+
+  @override
+  String get fieldType => 'Field Type';
+
+  @override
+  String get dropdownOptions => 'Dropdown Options';
+
+  @override
+  String get enterOption => 'Enter option';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get fieldNameEmpty => 'Field name cannot be empty';
+
+  @override
+  String get fieldExists => 'Field name already exists';
+
+  @override
+  String get dropdownEmpty => 'Dropdown must have at least one option';
+
+  @override
+  String get fieldCannotBeDeleted => 'Field cannot be deleted.';
 }

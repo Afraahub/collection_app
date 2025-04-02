@@ -664,6 +664,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   void _storeDummyData() {
     DateTime yesterday = DateTime.now().subtract(Duration(days: 1));
+    // ignore: unused_local_variable
+    String formattedDate = DateFormat('yyyy-MM-dd').format(yesterday);
     List<dynamic>? existingData = collectionBox.get('data');
 
     if (existingData == null || existingData.isEmpty) {
@@ -677,7 +679,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
       };
       setState(() {
         collectionBox.put('data', [dummyEntry]);
-        print("Stored dummy data: $dummyEntry"); // Debug print
       });
     }
   }
@@ -692,8 +693,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         .map((item) => Map<String, String>.from(item as Map))
         .toList();
 
-    print("All collection info: $collectionInfo"); // Debug print
-
     if (specificDate != null) {
       return collectionInfo
           .where((entry) =>
@@ -703,8 +702,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     if (selectedFilter == "Today") {
       return collectionInfo
-          .where(
-              (entry) => entry["date"]?.toString().startsWith(today) ?? false)
+          .where((entry) => entry["date"]?.toString().startsWith(today) ?? false)
           .toList();
     } else if (selectedFilter == "Yesterday") {
       return collectionInfo
@@ -717,56 +715,71 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   void _showDateDataPopup(String selectedDate) {
-    List<Map<String, String>> filteredData =
-        getFilteredCollectionInfo(specificDate: selectedDate);
+  List<Map<String, String>> filteredData = getFilteredCollectionInfo(specificDate: selectedDate);
+  
+  // Convert selectedDate format for display
+  String displayDate = DateFormat('dd-MMM-yyyy').format(DateFormat('yyyy-MM-dd').parse(selectedDate));
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "${AppLocalizations.of(context)!.data_for} $selectedDate",
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      return Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+                "${AppLocalizations.of(context)!.data_for} $displayDate",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
-              filteredData.isNotEmpty
-                  ? SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.5,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: filteredData.length,
-                        itemBuilder: (context, index) {
-                          return Card(
-                            margin: EdgeInsets.symmetric(vertical: 4.0),
-                            child: ListTile(
-                              title: Text('${AppLocalizations.of(context)!.entry} ${index + 1}'),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: filteredData[index]
-                                    .entries
-                                    .map((e) => Text('${e.key}: ${e.value}'))
-                                    .toList(),
+            SizedBox(height: 10),
+            filteredData.isNotEmpty
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: filteredData.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          margin: EdgeInsets.symmetric(vertical: 4.0),
+                          child: ListTile(
+                            title: Text(
+                                "${AppLocalizations.of(context)!.entry} ${index + 1}",
                               ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: filteredData[index]
+                                  .entries
+                                  .map((e) {
+                                    // Convert date field only
+                                    if (e.key == "date") {
+                                      String formattedDate = DateFormat('dd-MMM-yyyy HH:mm:ss').format(
+                                        DateFormat('yyyy-MM-dd HH:mm:ss').parse(e.value)
+                                      );
+                                      return Text('${e.key}: $formattedDate');
+                                    }
+                                    return Text('${e.key}: ${e.value}');
+                                  })
+                                  .toList(),
                             ),
-                          );
-                        },
-                      ),
-                    )
-                  : Center(child: Text(AppLocalizations.of(context)!.no_data_for_date)),
-            ],
-          ),
-        );
-      },
-    );
-  }
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : Center(
+                      child: Text(AppLocalizations.of(context)!.no_data_available),
+                    ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -784,84 +797,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  Future<void> _exportToCsv() async {
-    try {
-      List<Map<String, String>> collectionInfo = getFilteredCollectionInfo();
-      print(
-          "Filtered collection info for export: $collectionInfo"); // Debug print
-
-      if (collectionInfo.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.no_data_to_export)),
-        );
-        return;
-      }
-
-      List<List<dynamic>> csvData = [
-        collectionInfo.first.keys.toList(),
-        ...collectionInfo.map((entry) => entry.values.toList()),
-      ];
-
-      print("CSV data prepared: $csvData"); // Debug print
-
-      String csv = const ListToCsvConverter().convert(csvData);
-      print("Generated CSV string: $csv"); // Debug print
-
-      if (kIsWeb) {
-        final bytes = utf8.encode(csv);
-        final blob = html.Blob([bytes], 'text/csv');
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..setAttribute('download',
-              'report_${selectedFilter}_${DateTime.now().millisecondsSinceEpoch}.csv')
-          ..click();
-        html.Url.revokeObjectUrl(url);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.csv_downloaded)),
-        );
-      } else {
-        if (await Permission.storage.request().isDenied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-            content: Text(AppLocalizations.of(context)!.storage_permission_required),
-          ),
-          );
-          return;
-        }
-
-        Directory? directory;
-        try {
-          directory = await getDownloadsDirectory();
-          if (directory == null) {
-            throw Exception(AppLocalizations.of(context)!.downloads_directory_unavailable);
-          }
-        } catch (e) {
-          print("Error accessing Downloads directory: $e"); // Debug print
-          directory = await getApplicationDocumentsDirectory();
-        }
-
-        final fileName =
-            'report_${selectedFilter}_${DateTime.now().millisecondsSinceEpoch}.csv';
-        final file = File('${directory.path}/$fileName');
-
-        print("Saving CSV to: ${file.path}"); // Debug print
-
-        await directory.create(recursive: true);
-        await file.writeAsString(csv);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppLocalizations.of(context)!.report_exported_to} ${file.path}')),
-        );
-      }
-    } catch (e) {
-      print("Error in _exportToCsv: $e"); // Debug print
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${AppLocalizations.of(context)!.failed_to_export_csv}: $e')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     List<Map<String, String>> collectionInfo = getFilteredCollectionInfo();
@@ -871,12 +806,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         title: Text(AppLocalizations.of(context)!.reports),
         centerTitle: true,
         backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.download),
-            onPressed: _exportToCsv,
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -890,24 +819,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-               _filterButton(AppLocalizations.of(context)!.today),
-                _filterButton(AppLocalizations.of(context)!.yesterday),
-                _filterButton(AppLocalizations.of(context)!.this_week),
-                _filterButton(AppLocalizations.of(context)!.this_month),
+              _filterButton(AppLocalizations.of(context)!.today),
+              _filterButton(AppLocalizations.of(context)!.yesterday),
+              _filterButton(AppLocalizations.of(context)!.this_week),
+              _filterButton(AppLocalizations.of(context)!.this_month),
               ],
             ),
             SizedBox(height: 16),
-            _buildSummaryGrid(collectionInfo),
+            _buildSummaryGrid(collectionInfo), // Updated type
             SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                AppLocalizations.of(context)!.recent_collection,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
+  AppLocalizations.of(context)!.recent_collection,
+  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+),
             ),
             SizedBox(height: 8),
             Expanded(
@@ -919,8 +845,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       },
                     )
                   : Center(
-          child: Text(AppLocalizations.of(context)!.no_data_available),
-),
+                      child: Text(
+                        AppLocalizations.of(context)!.no_data_available,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -937,11 +865,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       childAspectRatio: 6,
       physics: NeverScrollableScrollPhysics(),
       children: [
-      _summaryCard(AppLocalizations.of(context)!.total_collection, _calculateTotal(collectionInfo, "count")),
-      _summaryCard(AppLocalizations.of(context)!.previous_collection, _calculatePreviousTotal()),
-      _summaryCard(AppLocalizations.of(context)!.total_clients, _calculateTotalClients(collectionInfo)),
-      _summaryCard(AppLocalizations.of(context)!.total_payments, _calculateTotalPayments(collectionInfo)),
-      ],
+  _summaryCard(AppLocalizations.of(context)!.total_collection, _calculateTotal(collectionInfo, "count")),
+  _summaryCard(AppLocalizations.of(context)!.previous_collection, _calculatePreviousTotal()),
+  _summaryCard(AppLocalizations.of(context)!.total_clients, _calculateTotalClients(collectionInfo)),
+  _summaryCard(AppLocalizations.of(context)!.total_payments, _calculateTotalPayments(collectionInfo)),
+],
+
     );
   }
 
@@ -977,11 +906,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return collectionInfo
           .where((entry) {
             String date = entry["date"] ?? "";
-            return date.compareTo(
-                        DateFormat('yyyy-MM-dd').format(lastMonday)) >=
-                    0 &&
-                date.compareTo(DateFormat('yyyy-MM-dd').format(lastSunday)) <=
-                    0;
+            return date.compareTo(DateFormat('yyyy-MM-dd').format(lastMonday)) >= 0 &&
+                date.compareTo(DateFormat('yyyy-MM-dd').format(lastSunday)) <= 0;
           })
           .length
           .toString();
@@ -991,12 +917,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return collectionInfo
           .where((entry) {
             String date = entry["date"] ?? "";
-            return date.compareTo(
-                        DateFormat('yyyy-MM-dd').format(firstDayPrevMonth)) >=
-                    0 &&
-                date.compareTo(
-                        DateFormat('yyyy-MM-dd').format(lastDayPrevMonth)) <=
-                    0;
+            return date.compareTo(DateFormat('yyyy-MM-dd').format(firstDayPrevMonth)) >= 0 &&
+                date.compareTo(DateFormat('yyyy-MM-dd').format(lastDayPrevMonth)) <= 0;
           })
           .length
           .toString();
@@ -1013,10 +935,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     for (var entry in collectionInfo) {
       String? clientName = entry["Name"]?.trim();
       String? mobileNumber = entry["Number"]?.trim();
-      if (clientName != null &&
-          mobileNumber != null &&
-          clientName.isNotEmpty &&
-          mobileNumber.isNotEmpty) {
+      if (clientName != null && mobileNumber != null && clientName.isNotEmpty && mobileNumber.isNotEmpty) {
         uniqueClients.add("$clientName|$mobileNumber");
       }
     }
@@ -1043,15 +962,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
         children: [
           Text(
             title,
-            style: TextStyle(
-                color: Colors.black, fontWeight: FontWeight.w600, fontSize: 11),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 11),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 2),
           Text(
             value,
-            style: TextStyle(
-                color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -1061,8 +978,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _filterButton(String text) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            selectedFilter == text ? Colors.blue : Colors.grey[300],
+        backgroundColor: selectedFilter == text ? Colors.blue : Colors.grey[300],
         foregroundColor: selectedFilter == text ? Colors.white : Colors.black,
       ),
       onPressed: () {
@@ -1079,11 +995,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 4.0),
       child: ListTile(
-        title: Text('Entry ${index + 1}'),
+        title: Text("${AppLocalizations.of(context)!.entry} ${index + 1}"),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children:
-              item.entries.map((e) => Text('${e.key}: ${e.value}')).toList(),
+          children: item.entries.map((e) => Text('${e.key}: ${e.value}')).toList(),
         ),
       ),
     );
