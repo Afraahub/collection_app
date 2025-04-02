@@ -24,13 +24,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ];
   final List<String> fixedFields = ['Name', 'Amount'];
 
-  final List<FieldModel> defaultFields = [
-    FieldModel(name: 'Name', type: 'Text', isMandatory: true),
-    FieldModel(name: 'Amount', type: 'Number', isMandatory: true),
-    FieldModel(name: 'Age', type: 'Number', isMandatory: false),
-    FieldModel(name: 'Number', type: 'Number', isMandatory: false),
-    FieldModel(name: 'Address', type: 'Text', isMandatory: false),
+  List<FieldModel> defaultFields = [];
+
+@override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+
+  // Always update the list whenever the language changes
+  defaultFields = [
+    FieldModel(name: AppLocalizations.of(context)!.name, type: 'Text', isMandatory: true),
+    FieldModel(name: AppLocalizations.of(context)!.amount, type: 'Number', isMandatory: true),
+    FieldModel(name: AppLocalizations.of(context)!.age, type: 'Number', isMandatory: false),
+    FieldModel(name: AppLocalizations.of(context)!.number, type: 'Number', isMandatory: false),
+    FieldModel(name: AppLocalizations.of(context)!.address, type: 'Text', isMandatory: false),
   ];
+
+  setState(() {}); // Ensure UI updates when language changes
+}
+
+
 
   @override
   void initState() {
@@ -293,6 +305,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.settings),
+        actions: [
+  IconButton(
+    icon: Icon(Icons.add),
+    onPressed: () {
+      _showFieldDialog(isEdit: false);
+    },
+  ),
+],
+
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -321,7 +342,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: ListView.builder(
                 itemCount: fields.length,
                 itemBuilder: (context, index) {
-                  FieldModel field = fields[index];
+                  FieldModel field = defaultFields[index];
                   return ListTile(
                     title: Text('${field.name} (${field.type})'),
                     subtitle: Column(
@@ -336,6 +357,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text('Options: ${field.options.join(', ')}'),
                       ],
                     ),
+                    trailing: IconButton(
+          icon: Icon(Icons.delete, color: Colors.red),
+          onPressed: () {
+            _deleteField(index);
+          },
+        ),
                   );
                 },
               ),

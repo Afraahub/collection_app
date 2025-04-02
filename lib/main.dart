@@ -127,6 +127,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
     FieldModel(name: 'Address', type: 'Text', isMandatory: false),
   ];
 
+
   @override
   void initState() {
     super.initState();
@@ -553,9 +554,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+   return Scaffold(
       appBar: AppBar(
-        title: Text('Collection'),
+        title: Text(AppLocalizations.of(context)!.collection),
         actions: [
           IconButton(
             icon: Icon(Icons.download),
@@ -585,20 +586,20 @@ class _CollectionScreenState extends State<CollectionScreen> {
                                   borderRadius: BorderRadius.circular(10)),
                             ),
                             onPressed: _saveData,
-                            child: Text('Save',
+                            child: Text(AppLocalizations.of(context)!.save,
                                 style: TextStyle(
                                     fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                           TextButton(
                             onPressed: _clearAllFields,
-                            child: Text('Clear All',
+                            child: Text(AppLocalizations.of(context)!.clear_all,
                                 style:
                                     TextStyle(color: Colors.red, fontSize: 16)),
                           ),
                         ],
                       ),
                       SizedBox(height: 20),
-                      Text('Saved Data',
+                      Text(AppLocalizations.of(context)!.saved_data,
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
                       _buildSavedDataList(),
@@ -624,7 +625,7 @@ class InvoiceWebViewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Invoice Preview'),
+        title: Text(AppLocalizations.of(context)!.invoicePreview),
       ),
       body: InAppWebView(
         initialData: InAppWebViewInitialData(
@@ -732,7 +733,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Data for $selectedDate",
+                "${AppLocalizations.of(context)!.data_for} $selectedDate",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
@@ -746,7 +747,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           return Card(
                             margin: EdgeInsets.symmetric(vertical: 4.0),
                             child: ListTile(
-                              title: Text('Entry ${index + 1}'),
+                              title: Text('${AppLocalizations.of(context)!.entry} ${index + 1}'),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: filteredData[index]
@@ -759,7 +760,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         },
                       ),
                     )
-                  : Center(child: Text("No data available for this date.")),
+                  : Center(child: Text(AppLocalizations.of(context)!.no_data_for_date)),
             ],
           ),
         );
@@ -791,7 +792,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
       if (collectionInfo.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No data to export')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.no_data_to_export)),
         );
         return;
       }
@@ -817,13 +818,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
         html.Url.revokeObjectUrl(url);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV downloaded via browser')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.csv_downloaded)),
         );
       } else {
         if (await Permission.storage.request().isDenied) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('Storage permission is required to export CSV')),
+            content: Text(AppLocalizations.of(context)!.storage_permission_required),
+          ),
           );
           return;
         }
@@ -832,7 +834,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         try {
           directory = await getDownloadsDirectory();
           if (directory == null) {
-            throw Exception('Downloads directory not available');
+            throw Exception(AppLocalizations.of(context)!.downloads_directory_unavailable);
           }
         } catch (e) {
           print("Error accessing Downloads directory: $e"); // Debug print
@@ -849,13 +851,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
         await file.writeAsString(csv);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Report exported to ${file.path}')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.report_exported_to} ${file.path}')),
         );
       }
     } catch (e) {
       print("Error in _exportToCsv: $e"); // Debug print
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to export CSV: $e')),
+        SnackBar(content: Text('${AppLocalizations.of(context)!.failed_to_export_csv}: $e')),
       );
     }
   }
@@ -866,7 +868,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Reports"),
+        title: Text(AppLocalizations.of(context)!.reports),
         centerTitle: true,
         backgroundColor: Colors.blue,
         actions: [
@@ -882,16 +884,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
           children: [
             ElevatedButton(
               onPressed: _pickDate,
-              child: Text(selectedDate ?? "Select Date"),
+              child: Text(selectedDate ?? AppLocalizations.of(context)!.select_date),
             ),
             SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _filterButton("Today"),
-                _filterButton("Yesterday"),
-                _filterButton("This Week"),
-                _filterButton("This Month"),
+               _filterButton(AppLocalizations.of(context)!.today),
+                _filterButton(AppLocalizations.of(context)!.yesterday),
+                _filterButton(AppLocalizations.of(context)!.this_week),
+                _filterButton(AppLocalizations.of(context)!.this_month),
               ],
             ),
             SizedBox(height: 16),
@@ -900,7 +902,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Recent Collection",
+                AppLocalizations.of(context)!.recent_collection,
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -917,8 +919,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       },
                     )
                   : Center(
-                      child: Text(
-                          "No data available for ${selectedDate ?? selectedFilter}")),
+          child: Text(AppLocalizations.of(context)!.no_data_available),
+),
             ),
           ],
         ),
@@ -935,11 +937,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
       childAspectRatio: 6,
       physics: NeverScrollableScrollPhysics(),
       children: [
-        _summaryCard(
-            "Total Collection", _calculateTotal(collectionInfo, "count")),
-        _summaryCard("Previous Collection", _calculatePreviousTotal()),
-        _summaryCard("Total Clients", _calculateTotalClients(collectionInfo)),
-        _summaryCard("Total Payments", _calculateTotalPayments(collectionInfo)),
+      _summaryCard(AppLocalizations.of(context)!.total_collection, _calculateTotal(collectionInfo, "count")),
+      _summaryCard(AppLocalizations.of(context)!.previous_collection, _calculatePreviousTotal()),
+      _summaryCard(AppLocalizations.of(context)!.total_clients, _calculateTotalClients(collectionInfo)),
+      _summaryCard(AppLocalizations.of(context)!.total_payments, _calculateTotalPayments(collectionInfo)),
       ],
     );
   }

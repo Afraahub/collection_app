@@ -8,31 +8,25 @@ import 'app_localizations_en.dart';
 import 'app_localizations_ta.dart';
 
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(this.locale);
 
-  final String localeName;
+  final String locale;
+
+  static Future<AppLocalizations> load(Locale locale) async {
+    switch (locale.languageCode) {
+      case 'ta':
+        return AppLocalizationsTa();
+      case 'en':
+      default:
+        return AppLocalizationsEn();
+    }
+  }
 
   static AppLocalizations of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
   static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
-
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
-
-  static const List<Locale> supportedLocales = <Locale>[
-    Locale('en'),
-    Locale('ta')
-  ];
-
-  var collection;
-
-  var report;
 
   String get hello;
   String get welcome_message;
@@ -44,45 +38,46 @@ abstract class AppLocalizations {
   String get occupation;
   String get address;
   String get amount;
-
-
-  get reports => null;
-
-  get options => null;
-
-  get text => null;
-
-  get age => null;
-
-  String cannot_delete_field(String name) {
-  return "$name cannot be deleted."; // Ensure a valid return value
-}
-
-}
+  String get number;
+  String get age;
+  String get collection;
+  String get save;
+  String get clear_all;
+  String get saved_data;
+  String get invoicePreview;
+  String get reports;
+  String get data_for;
+  String get entry;
+  String get no_data_for_date;
+  String get select_date;
+  String get today;
+  String get yesterday;
+  String get this_week;
+  String get this_month;
+  String get recent_collection;
+  String get total_collection;
+  String get previous_collection;
+  String get total_clients;
+  String get total_payments;
+  String get no_data_to_export;
+  String get csv_downloaded;
+  String get storage_permission_required;
+  String get downloads_directory_unavailable;
+  String get report_exported_to;
+  String get failed_to_export_csv;
+  String get no_data_available;
+  }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
-  Future<AppLocalizations> load(Locale locale) {
-    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
-  }
+  bool isSupported(Locale locale) => ['en', 'ta'].contains(locale.languageCode);
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'ta'].contains(locale.languageCode);
+  Future<AppLocalizations> load(Locale locale) => AppLocalizations.load(locale);
 
   @override
-  bool shouldReload(_AppLocalizationsDelegate old) => false;
-}
-
-AppLocalizations lookupAppLocalizations(Locale locale) {
-  switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'ta':
-      return AppLocalizationsTa();
-    default:
-      return AppLocalizationsEn(); // Fallback to English instead of throwing an error
-  }
+  bool shouldReload(LocalizationsDelegate<AppLocalizations> old) => false;
 }
 
