@@ -105,7 +105,6 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-
 class CollectionScreen extends StatefulWidget {
   @override
   _CollectionScreenState createState() => _CollectionScreenState();
@@ -286,18 +285,21 @@ class _CollectionScreenState extends State<CollectionScreen> {
   Future<void> _generateAndDownloadBill(Map<String, String> data) async {
     try {
       final pdf = pw.Document();
-
+      final localizations = AppLocalizations.of(context)!; // Get localization
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Bill Receipt',
-                  style: pw.TextStyle(
-                      fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.Text(
+              localizations.billReceipt, // Localized Bill Receipt
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
               pw.SizedBox(height: 20),
-              pw.Text('Date: ${data['date']}',
-                  style: pw.TextStyle(fontSize: 16)),
+              pw.Text(
+              '${localizations.date}: ${data['date']}', // Localized "Date"
+              style: pw.TextStyle(fontSize: 16),
+            ),
               pw.SizedBox(height: 20),
               pw.Table(
                 border: pw.TableBorder.all(),
@@ -306,15 +308,17 @@ class _CollectionScreenState extends State<CollectionScreen> {
                     children: [
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text('Field',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        child: pw.Text(
+                        localizations.field, // Localized "Field"
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text('Value',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        child: pw.Text(
+                        localizations.value, // Localized "Value"
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
                       ),
                     ],
                   ),
@@ -351,14 +355,16 @@ class _CollectionScreenState extends State<CollectionScreen> {
         html.Url.revokeObjectUrl(url);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Bill downloaded via browser')),
+          SnackBar(
+  content: Text(AppLocalizations.of(context)!.bill_downloaded_browser),
+),
         );
       } else {
         if (await Permission.storage.request().isDenied) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content:
-                    Text('Storage permission is required to save the bill')),
+  content: Text(AppLocalizations.of(context)!.storage_permission_required),
+),
           );
           return;
         }
@@ -381,12 +387,16 @@ class _CollectionScreenState extends State<CollectionScreen> {
         await file.writeAsBytes(pdfBytes);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Bill downloaded to ${file.path}')),
+          SnackBar(
+  content: Text(AppLocalizations.of(context)!.bill_downloaded.replaceFirst('{path}', file.path)),
+),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to download bill: $e')),
+        SnackBar(
+  content: Text(AppLocalizations.of(context)!.failed_download_bill.replaceFirst('{error}', '$e')),
+),
       );
     }
   }
@@ -454,7 +464,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
       if (collectionInfo.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No data to export')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.noDataToExport)),
         );
         return;
       }
@@ -477,13 +487,12 @@ class _CollectionScreenState extends State<CollectionScreen> {
         html.Url.revokeObjectUrl(url);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV downloaded via browser')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.csvDownloadedBrowser)),
         );
       } else {
         if (await Permission.storage.request().isDenied) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Storage permission is required to export CSV')),
+           SnackBar(content: Text(AppLocalizations.of(context)!.storagePermissionRequiredCsv)),
           );
           return;
         }
@@ -492,8 +501,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
         try {
           directory = await getDownloadsDirectory();
           if (directory == null) {
-            throw Exception('Downloads directory not available');
-          }
+    throw Exception(AppLocalizations.of(context)!.downloadsDirectoryNotAvailable);
+}
         } catch (e) {
           directory = await getApplicationDocumentsDirectory();
         }
@@ -506,12 +515,12 @@ class _CollectionScreenState extends State<CollectionScreen> {
         await file.writeAsString(csv);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV exported to ${file.path}')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.csvExportedTo.replaceFirst('{path}', file.path))),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to export CSV: $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.failedToExportCsv.replaceFirst('{error}', e.toString()))),
       );
     }
   }
@@ -525,7 +534,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
         return Card(
           margin: EdgeInsets.symmetric(vertical: 4.0),
           child: ListTile(
-            title: Text('Entry ${index + 1}'),
+            title: Text(
+                                "${AppLocalizations.of(context)!.entry} ${index + 1}",
+                              ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: savedData[index]

@@ -175,4 +175,56 @@ String get no_data_available => 'தரவு இல்லை';
 
   @override
   String get collectionApp => 'சேகரிப்பு பயன்பாடு';
+
+  @override
+String get failedDownloadBill => 'பில் பதிவிறக்கம் தோல்வியடைந்தது: {error}';
+
+@override
+String get billDownloaded => 'பில் {path} க்கு பதிவிறக்கப்பட்டது';
+
+@override
+String get storagePermissionRequired => 'பில்லைக் சேமிக்க சேமிப்பு அனுமதி தேவை';
+
+@override
+String get billDownloadedBrowser => 'உலாவி மூலம் பில் பதிவிறக்கப்பட்டது';
+
+@override
+String get billReceipt => 'பில் ரசீது';
+
+@override
+String get field => 'புலம்';
+
+@override
+String get value => 'மதிப்பு';
+
+@override
+String get noDataToExport => 'ஏற்றுமதிக்குத் தரவு இல்லை';
+
+@override
+String get csvDownloadedBrowser => 'உலாவி மூலம் CSV பதிவிறக்கப்பட்டது';
+
+@override
+String get storagePermissionRequiredCsv => 'CSV ஐ ஏற்றுமதி செய்ய சேமிப்பு அனுமதி தேவை';
+
+@override
+String get downloadsDirectoryNotAvailable => 'பதிவிறக்க கோப்பகம் கிடைக்கவில்லை';
+
+@override
+String get csvExportedTo => 'CSV {path} க்கு ஏற்றுமதி செய்யப்பட்டது';
+
+@override
+String get failedToExportCsv => 'CSV ஏற்றுமதி தோல்வியடைந்தது: {error}';
+
+  @override
+  // TODO: implement bill_downloaded
+  String get bill_downloaded => throw UnimplementedError();
+
+  @override
+  // TODO: implement bill_downloaded_browser
+  String get bill_downloaded_browser => throw UnimplementedError();
+
+  @override
+  // TODO: implement failed_download_bill
+  String get failed_download_bill => throw UnimplementedError();
+
 }

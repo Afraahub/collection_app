@@ -85,6 +85,18 @@ abstract class AppLocalizations {
   String get dateTime;
   String get dropdown;
   String get collectionApp;
+  String get failed_download_bill;
+  String get bill_downloaded;
+  String get bill_downloaded_browser;
+  String get billReceipt;
+  String get field;
+  String get value;
+  String get noDataToExport;
+  String get csvDownloadedBrowser;
+  String get storagePermissionRequiredCsv;
+  String get downloadsDirectoryNotAvailable;
+  String get csvExportedTo;
+  String get failedToExportCsv;
   }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

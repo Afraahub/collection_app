@@ -170,4 +170,56 @@ String get no_data_available => 'No data available';
 
   @override
   String get collectionApp => 'சேகரிப்பு பயன்பாடு';
+
+  @override
+String get failedDownloadBill => 'Failed to download bill: {error}';
+
+@override
+String get billDownloaded => 'Bill downloaded to {path}';
+
+@override
+String get storagePermissionRequired => 'Storage permission is required to save the bill';
+
+@override
+String get billDownloadedBrowser => 'Bill downloaded via browser';
+
+@override
+String get billReceipt => 'Bill Receipt';
+
+@override
+String get field => 'Field';
+
+@override
+String get value => 'Value';
+
+@override
+String get noDataToExport => 'No data to export';
+
+@override
+String get csvDownloadedBrowser => 'CSV downloaded via browser';
+
+@override
+String get storagePermissionRequiredCsv => 'Storage permission is required to export CSV';
+
+@override
+String get downloadsDirectoryNotAvailable => 'Downloads directory not available';
+
+@override
+String get csvExportedTo => 'CSV exported to {path}';
+
+@override
+String get failedToExportCsv => 'Failed to export CSV: {error}';
+
+  @override
+  // TODO: implement bill_downloaded
+  String get bill_downloaded => throw UnimplementedError();
+
+  @override
+  // TODO: implement bill_downloaded_browser
+  String get bill_downloaded_browser => throw UnimplementedError();
+
+  @override
+  // TODO: implement failed_download_bill
+  String get failed_download_bill => throw UnimplementedError();
+
 }
