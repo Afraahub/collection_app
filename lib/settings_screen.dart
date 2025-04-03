@@ -32,17 +32,16 @@ void didChangeDependencies() {
 
   // Always update the list whenever the language changes
   defaultFields = [
-    FieldModel(name: AppLocalizations.of(context)!.name, type: 'Text', isMandatory: true),
-    FieldModel(name: AppLocalizations.of(context)!.amount, type: 'Number', isMandatory: true),
-    FieldModel(name: AppLocalizations.of(context)!.age, type: 'Number', isMandatory: false),
-    FieldModel(name: AppLocalizations.of(context)!.number, type: 'Number', isMandatory: false),
-    FieldModel(name: AppLocalizations.of(context)!.address, type: 'Text', isMandatory: false),
+    FieldModel(name: AppLocalizations.of(context)!.name, type: AppLocalizations.of(context)!.text, isMandatory: true),
+    FieldModel(name: AppLocalizations.of(context)!.amount, type: AppLocalizations.of(context)!.number, isMandatory: true),
+    FieldModel(name: AppLocalizations.of(context)!.age, type: AppLocalizations.of(context)!.number, isMandatory: false),
+    FieldModel(name: AppLocalizations.of(context)!.number, type: AppLocalizations.of(context)!.number, isMandatory: false),
+    FieldModel(name: AppLocalizations.of(context)!.address, type: AppLocalizations.of(context)!.text, isMandatory: false),
   ];
+
 
   setState(() {}); // Ensure UI updates when language changes
 }
-
-
 
   @override
   void initState() {
@@ -115,11 +114,19 @@ void didChangeDependencies() {
       : null;
   
   TextEditingController fieldNameController = TextEditingController(text: editingField?.name ?? '');
-  String selectedType = editingField?.type ?? fieldTypes[0];
+  String selectedType = editingField?.type ?? AppLocalizations.of(context)!.text; // Default to localized 'Text'
   bool isMandatory = editingField?.isMandatory ?? false;
   List<String> dropdownOptions = List.from(editingField?.options ?? []);
   TextEditingController optionController = TextEditingController();
   String? errorText;
+
+  List<String> localizedFieldTypes = [
+    AppLocalizations.of(context)!.text,
+    AppLocalizations.of(context)!.number,
+    AppLocalizations.of(context)!.date,
+    AppLocalizations.of(context)!.dateTime,
+    AppLocalizations.of(context)!.dropdown
+  ];
 
   showDialog(
     context: context,
@@ -145,13 +152,13 @@ void didChangeDependencies() {
                     SizedBox(height: 10),
                     DropdownButtonFormField<String>(
                       value: selectedType,
-                      items: fieldTypes
+                      items: localizedFieldTypes
                           .map((type) => DropdownMenuItem(value: type, child: Text(type)))
                           .toList(),
                       onChanged: (value) {
                         setStateDialog(() {
                           selectedType = value!;
-                          if (selectedType != 'Dropdown') {
+                          if (selectedType != AppLocalizations.of(context)!.dropdown) {
                             dropdownOptions.clear();
                           }
                         });
@@ -168,7 +175,7 @@ void didChangeDependencies() {
                         });
                       },
                     ),
-                    if (selectedType == 'Dropdown') ...[
+                    if (selectedType == AppLocalizations.of(context)!.dropdown) ...[
                       SizedBox(height: 10),
                       Text(AppLocalizations.of(context)!.dropdownOptions,
                           style: TextStyle(fontWeight: FontWeight.bold)),
@@ -248,7 +255,7 @@ void didChangeDependencies() {
                     return;
                   }
 
-                  if (selectedType == 'Dropdown' && dropdownOptions.isEmpty) {
+                  if (selectedType == AppLocalizations.of(context)!.dropdown && dropdownOptions.isEmpty) {
                     setStateDialog(() {
                       errorText = AppLocalizations.of(context)!.dropdownEmpty;
                     });
@@ -261,14 +268,14 @@ void didChangeDependencies() {
                         name: fieldName,
                         type: selectedType,
                         isMandatory: isMandatory,
-                        options: selectedType == 'Dropdown' ? dropdownOptions : [],
+                        options: selectedType == AppLocalizations.of(context)!.dropdown ? dropdownOptions : [],
                       );
                     } else {
                       fields.add(FieldModel(
                         name: fieldName,
                         type: selectedType,
                         isMandatory: isMandatory,
-                        options: selectedType == 'Dropdown' ? dropdownOptions : [],
+                        options: selectedType == AppLocalizations.of(context)!.dropdown ? dropdownOptions : [],
                       ));
                     }
                     _ensureFixedFieldsPosition();
@@ -287,6 +294,7 @@ void didChangeDependencies() {
     },
   );
 }
+
 
 void _deleteField(int index) {
   if (index < 0 || index >= fields.length) {

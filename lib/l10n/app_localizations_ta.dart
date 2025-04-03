@@ -160,4 +160,19 @@ String get no_data_available => 'தரவு இல்லை';
 
   @override
   String get fieldCannotBeDeleted => 'புலத்தை நீக்க முடியாது.';
+
+  @override
+  String get text => 'உரை';
+
+  @override
+  String get date => 'தேதி';
+
+  @override
+  String get dateTime => 'தேதி மற்றும் நேரம்';
+
+  @override
+  String get dropdown => 'கீழ்தோன்றும் பட்டியல்';
+
+  @override
+  String get collectionApp => 'சேகரிப்பு பயன்பாடு';
 }

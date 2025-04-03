@@ -80,6 +80,11 @@ abstract class AppLocalizations {
   String get update;
   String get add;
   String get fieldCannotBeDeleted;
+  String get text;
+  String get date;
+  String get dateTime;
+  String get dropdown;
+  String get collectionApp;
   }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

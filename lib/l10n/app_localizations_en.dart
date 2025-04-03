@@ -155,4 +155,19 @@ String get no_data_available => 'No data available';
 
   @override
   String get fieldCannotBeDeleted => 'Field cannot be deleted.';
+
+  @override
+  String get text => 'Text';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get dateTime => 'Date & Time';
+
+  @override
+  String get dropdown => 'Dropdown';
+
+  @override
+  String get collectionApp => 'சேகரிப்பு பயன்பாடு';
 }

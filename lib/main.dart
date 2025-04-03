@@ -816,15 +816,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
               child: Text(selectedDate ?? AppLocalizations.of(context)!.select_date),
             ),
             SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-              _filterButton(AppLocalizations.of(context)!.today),
-              _filterButton(AppLocalizations.of(context)!.yesterday),
-              _filterButton(AppLocalizations.of(context)!.this_week),
-              _filterButton(AppLocalizations.of(context)!.this_month),
-              ],
-            ),
+            Wrap(
+  spacing: 12, // Increased space between buttons
+  runSpacing: 12, // Space between wrapped lines
+  alignment: WrapAlignment.center,
+  children: [
+    _filterButton(AppLocalizations.of(context)!.today),
+    _filterButton(AppLocalizations.of(context)!.yesterday),
+    _filterButton(AppLocalizations.of(context)!.this_week),
+    _filterButton(AppLocalizations.of(context)!.this_month),
+  ],
+),
+
             SizedBox(height: 16),
             _buildSummaryGrid(collectionInfo), // Updated type
             SizedBox(height: 8),
@@ -860,9 +863,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      childAspectRatio: 6,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 4,
       physics: NeverScrollableScrollPhysics(),
       children: [
   _summaryCard(AppLocalizations.of(context)!.total_collection, _calculateTotal(collectionInfo, "count")),
@@ -962,13 +965,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
         children: [
           Text(
             title,
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 11),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 13),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 2),
           Text(
             value,
-            style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -976,20 +979,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _filterButton(String text) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: selectedFilter == text ? Colors.blue : Colors.grey[300],
-        foregroundColor: selectedFilter == text ? Colors.white : Colors.black,
-      ),
-      onPressed: () {
-        setState(() {
-          selectedFilter = text;
-          selectedDate = null;
-        });
-      },
-      child: Text(text),
-    );
-  }
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Bigger padding
+      backgroundColor: selectedFilter == text ? Colors.blue : Colors.grey[300],
+      foregroundColor: selectedFilter == text ? Colors.white : Colors.black,
+      textStyle: TextStyle(fontSize: 14), // Bigger font
+    ),
+    onPressed: () {
+      setState(() {
+        selectedFilter = text;
+        selectedDate = null;
+      });
+    },
+    child: Text(text),
+  );
+}
+
 
   Widget _listItem(Map<String, String> item, int index) {
     return Card(
