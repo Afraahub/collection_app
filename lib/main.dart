@@ -12,12 +12,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'package:csv/csv.dart';
-import 'dart:html' as html; // For web support
+import 'package:universal_html/html.dart' as html;
 import 'dart:typed_data'; // For handling bytes
 import 'dart:ui' show kIsWeb; // Import for kIsWeb
 import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // For WebView
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:collectionapp/l10n/app_localizations.dart' show AppLocalizations;
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:share_plus/share_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -564,33 +566,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<FieldModel> defaultFields = [
-    FieldModel(
-      name: AppLocalizations.of(context)!.name,
-      type: AppLocalizations.of(context)!.text,
-      isMandatory: true,
-    ),
-    FieldModel(
-      name: AppLocalizations.of(context)!.age,
-      type: AppLocalizations.of(context)!.number,
-      isMandatory: true,
-    ),
-    FieldModel(
-      name: AppLocalizations.of(context)!.number,
-      type: AppLocalizations.of(context)!.number,
-      isMandatory: true,
-    ),
-    FieldModel(
-      name: AppLocalizations.of(context)!.amount,
-      type: AppLocalizations.of(context)!.number,
-      isMandatory: false,
-    ),
-    FieldModel(
-      name: AppLocalizations.of(context)!.address,
-      type: AppLocalizations.of(context)!.text,
-      isMandatory: false,
-    ),
-  ];
    return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.collection),
