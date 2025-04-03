@@ -119,13 +119,12 @@ class _CollectionScreenState extends State<CollectionScreen> {
   List<Map<String, String>> savedData = [];
 
   final List<FieldModel> defaultFields = [
-    FieldModel(name: 'Name', type: 'Text', isMandatory: true),
-    FieldModel(name: 'Age', type: 'Number', isMandatory: true),
-    FieldModel(name: 'Number', type: 'Number', isMandatory: true),
-    FieldModel(name: 'Amount', type: 'Number', isMandatory: false),
-    FieldModel(name: 'Address', type: 'Text', isMandatory: false),
-  ];
-
+  FieldModel(name: 'Name / பெயர்', type: 'Text', isMandatory: true),
+  FieldModel(name: 'Age / வயது', type: 'Number', isMandatory: true),
+  FieldModel(name: 'Number / எண்', type: 'Number', isMandatory: true),
+  FieldModel(name: 'Amount / தொகை', type: 'Number', isMandatory: false),
+  FieldModel(name: 'Address / முகவரி', type: 'Text', isMandatory: false),
+];
 
   @override
   void initState() {
@@ -373,8 +372,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
         try {
           directory = await getDownloadsDirectory();
           if (directory == null) {
-            throw Exception('Downloads directory not available');
-          }
+    throw Exception(AppLocalizations.of(context)!.downloadsDirectoryNotAvailable);
+}
         } catch (e) {
           directory = await getApplicationDocumentsDirectory();
         }
@@ -565,6 +564,33 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<FieldModel> defaultFields = [
+    FieldModel(
+      name: AppLocalizations.of(context)!.name,
+      type: AppLocalizations.of(context)!.text,
+      isMandatory: true,
+    ),
+    FieldModel(
+      name: AppLocalizations.of(context)!.age,
+      type: AppLocalizations.of(context)!.number,
+      isMandatory: true,
+    ),
+    FieldModel(
+      name: AppLocalizations.of(context)!.number,
+      type: AppLocalizations.of(context)!.number,
+      isMandatory: true,
+    ),
+    FieldModel(
+      name: AppLocalizations.of(context)!.amount,
+      type: AppLocalizations.of(context)!.number,
+      isMandatory: false,
+    ),
+    FieldModel(
+      name: AppLocalizations.of(context)!.address,
+      type: AppLocalizations.of(context)!.text,
+      isMandatory: false,
+    ),
+  ];
    return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.collection),

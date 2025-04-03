@@ -97,6 +97,7 @@ abstract class AppLocalizations {
   String get downloadsDirectoryNotAvailable;
   String get csvExportedTo;
   String get failedToExportCsv;
+  
   }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
