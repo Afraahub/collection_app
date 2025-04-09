@@ -38,10 +38,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 1;
-  Locale _appLocale =  Locale('en'); // Default Language
-
+  Locale _appLocale = Locale('en'); // Default Language
+  
   final List<Widget> _screens = [];
-
+  
   @override
   void initState() {
     super.initState();
@@ -49,19 +49,19 @@ class _MyAppState extends State<MyApp> {
     _screens.add(CollectionScreen());
     _screens.add(ReportsScreen());
   }
-
+  
   void _changeLanguage(Locale locale) {
     setState(() {
       _appLocale = locale;
     });
   }
-
+  
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -89,24 +89,38 @@ class _MyAppState extends State<MyApp> {
         }
         return supportedLocales.first; // Default to English
       },
-      home: Scaffold(
-        body: _screens[_selectedIndex],
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.settings), label: 'Settings'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.list), label: 'Collection'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.insert_chart), label: 'Report'),
-          ],
-        ),
+      home: Builder(
+        builder: (context) {
+          // Use Builder to get the context with Localizations
+          final localizations = AppLocalizations.of(context);
+          
+          return Scaffold(
+            body: _screens[_selectedIndex],
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped,
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.settings), 
+                  label: localizations.settings
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.list), 
+                  label: localizations.collection
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.insert_chart), 
+                  label: localizations.reports
+                ),
+              ],
+            ),
+          );
+        }
       ),
     );
   }
 }
+
 
 class CollectionScreen extends StatefulWidget {
   @override
@@ -128,6 +142,25 @@ class _CollectionScreenState extends State<CollectionScreen> {
   FieldModel(name: 'Amount', type: 'Number', isMandatory: false),
   FieldModel(name: 'Address', type: 'Text', isMandatory: false),
 ];
+
+String getLocalizedFieldName(BuildContext context, String fieldName) {
+  final loc = AppLocalizations.of(context)!;
+
+  switch (fieldName.toLowerCase()) {
+    case 'name':
+      return loc.name;
+    case 'age':
+      return loc.age;
+    case 'number':
+      return loc.number;
+    case 'amount':
+      return loc.amount;
+    case 'address':
+      return loc.address;
+    default:
+      return fieldName;
+  }
+}
 
   @override
   void initState() {
@@ -239,7 +272,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         decoration: InputDecoration(
           prefixIcon:
               Icon(field.type == 'Number' ? Icons.numbers : Icons.text_fields),
-          labelText: '${field.name} ${field.isMandatory ? '*' : ''}',
+    labelText: '${getLocalizedFieldName(context, field.name)} ${field.isMandatory ? '*' : ''}',
           border: OutlineInputBorder(),
         ),
         keyboardType:
@@ -527,6 +560,29 @@ class _CollectionScreenState extends State<CollectionScreen> {
     }
   }
 
+  String _getLocalizedFieldName(String key) {
+  final localizations = AppLocalizations.of(context)!;
+
+  // Match known fields to localization
+  switch (key.toLowerCase()) {
+    case 'name':
+      return localizations.name;
+    case 'age':
+      return localizations.age;
+    case 'number':
+      return localizations.number;
+    case 'amount':
+      return localizations.amount;
+    case 'address':
+      return localizations.address;
+    case 'date':
+      return localizations.date;
+    default:
+      return key; // fallback for custom field names
+  }
+}
+
+
   Widget _buildSavedDataList() {
     return ListView.builder(
       shrinkWrap: true,
@@ -541,10 +597,11 @@ class _CollectionScreenState extends State<CollectionScreen> {
                               ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: savedData[index]
-                  .entries
-                  .map((e) => Text('${e.key}: ${e.value}'))
-                  .toList(),
+              children: savedData[index].entries.map((e) {
+  final fieldLabel = _getLocalizedFieldName(e.key);
+  return Text('$fieldLabel: ${e.value}');
+}).toList(),
+
             ),
             trailing: Row(
   mainAxisSize: MainAxisSize.min,
@@ -680,6 +737,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
   String selectedFilter = "Today";
   String? selectedDate;
 
+  String getLocalizedField(String key) {
+  switch (key) {
+    case "Name":
+      return AppLocalizations.of(context)!.name;
+    case "Age":
+      return AppLocalizations.of(context)!.age;
+    case "Number":
+      return AppLocalizations.of(context)!.number;
+    case "Amount":
+      return AppLocalizations.of(context)!.amount;
+    case "Address":
+      return AppLocalizations.of(context)!.address;
+    case "date":
+      return AppLocalizations.of(context)!.date;
+    default:
+      return key;
+  }
+}
+
+
   @override
   void initState() {
     super.initState();
@@ -778,18 +855,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: filteredData[index]
-                                  .entries
-                                  .map((e) {
-                                    // Convert date field only
-                                    if (e.key == "date") {
-                                      String formattedDate = DateFormat('dd-MMM-yyyy HH:mm:ss').format(
-                                        DateFormat('yyyy-MM-dd HH:mm:ss').parse(e.value)
-                                      );
-                                      return Text('${e.key}: $formattedDate');
-                                    }
-                                    return Text('${e.key}: ${e.value}');
-                                  })
-                                  .toList(),
+  .entries
+  .map((e) {
+    String label = getLocalizedField(e.key);
+    String value = e.key == "date"
+      ? DateFormat('dd-MMM-yyyy HH:mm:ss').format(DateFormat('yyyy-MM-dd HH:mm:ss').parse(e.value))
+      : e.value;
+    return Text('$label: $value');
+  })
+  .toList(),
                             ),
                           ),
                         );
@@ -1023,15 +1097,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
 
   Widget _listItem(Map<String, String> item, int index) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 4.0),
-      child: ListTile(
-        title: Text("${AppLocalizations.of(context)!.entry} ${index + 1}"),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: item.entries.map((e) => Text('${e.key}: ${e.value}')).toList(),
-        ),
+  return Card(
+    margin: EdgeInsets.symmetric(vertical: 4.0),
+    child: ListTile(
+      title: Text("${AppLocalizations.of(context)!.entry} ${index + 1}"),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: item.entries.map((e) {
+          String label = getLocalizedField(e.key);
+          String value = e.value;
+          return Text('$label: $value');
+        }).toList(),
       ),
-    );
-  }
+    ),
+  );
+}
 }
