@@ -26,6 +26,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   List<FieldModel> defaultFields = [];
 
+  String _localizeFieldType(String type) {
+  final loc = AppLocalizations.of(context)!;
+
+  switch (type.toLowerCase()) {
+    case 'text':
+      return loc.text;
+    case 'number':
+      return loc.number;
+    case 'date':
+      return loc.date;
+    case 'datetime':
+      return loc.dateTime;
+    case 'dropdown':
+      return loc.dropdown;
+    default:
+      return type; // Fallback to original if unmatched
+  }
+}
+
+String _localizeFieldName(String name) {
+  final loc = AppLocalizations.of(context)!;
+
+  switch (name.toLowerCase()) {
+    case 'name':
+      return loc.name;
+    case 'amount':
+      return loc.amount;
+    case 'age':
+      return loc.age;
+    case 'number':
+      return loc.number;
+    case 'address':
+      return loc.address;
+    default:
+      return name; // Custom fields are assumed to be entered in user-preferred language
+  }
+}
+
+
+
 @override
 void didChangeDependencies() {
   super.didChangeDependencies();
@@ -325,71 +365,199 @@ void _deleteField(int index) {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.settings),
-        actions: [
-  IconButton(
-    icon: Icon(Icons.add),
-    onPressed: () {
-      _showFieldDialog(isEdit: false);
-    },
-  ),
-],
-
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.choose_language,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+     body: Padding(
+  padding: const EdgeInsets.all(12.0), // Slightly tighter padding
+  child: ListView(
+    children: [
+    /// 🌐 Choose Language Block
+Container(
+  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+  decoration: BoxDecoration(
+    color: Colors.white.withOpacity(0.6),
+    borderRadius: BorderRadius.circular(10),
+    boxShadow: const [
+      BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 2)),
+    ],
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        AppLocalizations.of(context)!.choose_language,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      ),
+      const SizedBox(height: 6),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<Locale>(
+            value: Localizations.localeOf(context),
+            isExpanded: true,
+            icon: const Icon(Icons.arrow_drop_down), // default triangle
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+            dropdownColor: Colors.white,
+            items: const [
+              DropdownMenuItem(
+                value: Locale('en'),
+                child: Text('English'),
+              ),
+              DropdownMenuItem(
+                value: Locale('ta'),
+                child: Text('தமிழ்'),
+              ),
+            ],
+            onChanged: (Locale? newLocale) {
+              if (newLocale != null) {
+                widget.changeLanguage(newLocale);
+              }
+            },
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+const SizedBox(height: 20),
+
+
+      /// 🌾 Manage Fields Block
+Container(
+  padding: const EdgeInsets.all(16),
+  decoration: BoxDecoration(
+    color: Colors.white.withOpacity(0.6),
+    borderRadius: BorderRadius.circular(10),
+    boxShadow: const [
+      BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 2)),
+    ],
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.manageFields,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
-            const SizedBox(height: 10),
-            DropdownButton<Locale>(
-              value: Localizations.localeOf(context),
-              items: const [
-                DropdownMenuItem(value: Locale('en'), child: Text('English')),
-                DropdownMenuItem(value: Locale('ta'), child: Text('தமிழ்')),
+          ),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              icon: const Icon(Icons.more_vert),
+              isDense: true,
+              items: [
+                DropdownMenuItem(
+                  value: 'add',
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_circle_outline, color: Colors.green, size: 20),
+                      SizedBox(width: 6),
+                      Text(AppLocalizations.of(context)!.addField),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, color: Colors.orange, size: 20),
+                      SizedBox(width: 6),
+                      Text(AppLocalizations.of(context)!.editField),
+                    ],
+                  ),
+                ),
               ],
-              onChanged: (Locale? newLocale) {
-                if (newLocale != null) {
-                  widget.changeLanguage(newLocale);
+              onChanged: (String? value) {
+                switch (value) {
+                  case 'add':
+                    _showFieldDialog(isEdit: false);
+                    break;
+                  case 'edit':
+                    if (fields.isNotEmpty) _editField(0);
+                    break;
                 }
               },
             ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: fields.length,
-                itemBuilder: (context, index) {
-                  FieldModel field = defaultFields[index];
-                  return ListTile(
-                    title: Text('${field.name} (${field.type})'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (field.isMandatory)
-                          Text(
-                            AppLocalizations.of(context)!.mandatory,
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        if (field.type == 'Dropdown' && field.options.isNotEmpty)
-                          Text('Options: ${field.options.join(', ')}'),
-                      ],
-                    ),
-                    trailing: IconButton(
-          icon: Icon(Icons.delete, color: Colors.red),
-          onPressed: () {
-            _deleteField(index);
-          },
-        ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
+    ],
+  ),
+),
+
+const SizedBox(height: 20),
+
+      /// 🧾 List of Fields Block (no outer container)
+      Text(
+        AppLocalizations.of(context)!.currentFields,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 6),
+      ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: fields.length,
+        itemBuilder: (context, index) {
+          final field = fields[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 3),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const [
+                BoxShadow(color: Colors.black12, blurRadius: 1.5, offset: Offset(0, 1)),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${_localizeFieldName(field.name)} (${_localizeFieldType(field.type)})',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      if (field.isMandatory)
+                        Text(
+                          AppLocalizations.of(context)!.mandatory,
+                          style: const TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      if (_localizeFieldType(field.type) ==
+                              AppLocalizations.of(context)!.dropdown &&
+                          field.options.isNotEmpty)
+                        Text(
+                          '${AppLocalizations.of(context)!.dropdownOptions}: ${field.options.join(', ')}',
+                          style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                        ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                  onPressed: () => _deleteField(index),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    ],
+  ),
+),
+);    
   }
 }

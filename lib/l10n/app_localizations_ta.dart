@@ -215,6 +215,24 @@ String get csvExportedTo => 'CSV {path} க்கு ஏற்றுமதி �
 @override
 String get failedToExportCsv => 'CSV ஏற்றுமதி தோல்வியடைந்தது: {error}';
 
+@override
+String get manageFields => 'புலங்களை நிர்வகிக்கவும்';
+
+@override
+String get currentFields => 'தற்போதைய புலங்கள்';
+
+@override
+String get deleteField => 'புலங்களை நீக்கவும்';
+
+@override
+String get selectOption => 'விருப்பத்தை தேர்ந்தெடுக்கவும்';
+
+@override
+String get noFieldsToEdit => 'தொகுக்க புலங்கள் இல்லை';
+
+@override
+String get entryDeleted => 'உள்ளீடு நீக்கப்பட்டது';
+
   @override
   // TODO: implement bill_downloaded
   String get bill_downloaded => throw UnimplementedError();

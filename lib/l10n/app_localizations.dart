@@ -97,7 +97,12 @@ abstract class AppLocalizations {
   String get downloadsDirectoryNotAvailable;
   String get csvExportedTo;
   String get failedToExportCsv;
-  
+  String get manageFields;
+  String get currentFields;
+  String get deleteField;
+  String get selectOption;
+  String get noFieldsToEdit;
+  String get entryDeleted;
   }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

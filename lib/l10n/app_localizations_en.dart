@@ -210,6 +210,24 @@ String get csvExportedTo => 'CSV exported to {path}';
 @override
 String get failedToExportCsv => 'Failed to export CSV: {error}';
 
+@override
+String get manageFields => 'Manage Fields';
+
+@override
+String get currentFields => 'Current Fields';
+
+@override
+String get deleteField => 'Delete Fields';
+
+@override
+String get selectOption => 'Select Option';
+
+@override
+String get noFieldsToEdit => 'No fields to edit';
+
+@override
+String get entryDeleted => 'Entry Deleted';
+
   @override
   // TODO: implement bill_downloaded
   String get bill_downloaded => throw UnimplementedError();

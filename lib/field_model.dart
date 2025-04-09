@@ -32,6 +32,8 @@ class FieldModel {
     );
   }
 
+  get label => null;
+
   Map<String, dynamic> toJson() {
     return {
       'name': name,

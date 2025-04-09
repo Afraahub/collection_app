@@ -21,6 +21,7 @@ import 'package:collectionapp/l10n/app_localizations.dart' show AppLocalizations
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:share_plus/share_plus.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter('hive_data');
@@ -121,11 +122,11 @@ class _CollectionScreenState extends State<CollectionScreen> {
   List<Map<String, String>> savedData = [];
 
   final List<FieldModel> defaultFields = [
-  FieldModel(name: 'Name / பெயர்', type: 'Text', isMandatory: true),
-  FieldModel(name: 'Age / வயது', type: 'Number', isMandatory: true),
-  FieldModel(name: 'Number / எண்', type: 'Number', isMandatory: true),
-  FieldModel(name: 'Amount / தொகை', type: 'Number', isMandatory: false),
-  FieldModel(name: 'Address / முகவரி', type: 'Text', isMandatory: false),
+  FieldModel(name: 'Name', type: 'Text', isMandatory: true),
+  FieldModel(name: 'Age', type: 'Number', isMandatory: true),
+  FieldModel(name: 'Number', type: 'Number', isMandatory: true),
+  FieldModel(name: 'Amount', type: 'Number', isMandatory: false),
+  FieldModel(name: 'Address', type: 'Text', isMandatory: false),
 ];
 
   @override
@@ -546,18 +547,30 @@ class _CollectionScreenState extends State<CollectionScreen> {
                   .toList(),
             ),
             trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.remove_red_eye_outlined),
-                  onPressed: () => _showInvoiceInWebView(savedData[index]),
-                ),
-                IconButton(
-                  icon: Icon(Icons.print),
-                  onPressed: () => _generateAndDownloadBill(savedData[index]),
-                ),
-              ],
-            ),
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    IconButton(
+      icon: Icon(Icons.remove_red_eye_outlined),
+      onPressed: () => _showInvoiceInWebView(savedData[index]),
+    ),
+    IconButton(
+      icon: Icon(Icons.print),
+      onPressed: () => _generateAndDownloadBill(savedData[index]),
+    ),
+    IconButton(
+      icon: Icon(Icons.delete, color: Colors.redAccent),
+      onPressed: () {
+        setState(() {
+          savedData.removeAt(index);
+          dataBox.put('data', savedData);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.entryDeleted)),
+        );
+      },
+    ),
+  ],
+),
           ),
         );
       },
