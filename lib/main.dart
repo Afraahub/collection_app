@@ -943,7 +943,7 @@ Widget _buildSummaryGrid(List<Map<String, String>> collectionInfo) {
     shrinkWrap: true,
     crossAxisSpacing: 16,
     mainAxisSpacing: 16,
-    childAspectRatio: 3.5,
+    childAspectRatio: 4,
     physics: NeverScrollableScrollPhysics(),
     children: [
       _summaryCard(AppLocalizations.of(context)!.total_collection,
