@@ -1,3 +1,4 @@
+import 'package:collectionapp/export_csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -493,73 +494,6 @@ String getLocalizedFieldName(BuildContext context, String fieldName) {
     );
   }
 
-  Future<void> _exportToCsv() async {
-    try {
-      List<Map<String, String>> collectionInfo = savedData;
-
-      if (collectionInfo.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.noDataToExport)),
-        );
-        return;
-      }
-
-      List<List<dynamic>> csvData = [
-        collectionInfo.first.keys.toList(),
-        ...collectionInfo.map((entry) => entry.values.toList()),
-      ];
-
-      String csv = const ListToCsvConverter().convert(csvData);
-
-      if (kIsWeb) {
-        final bytes = utf8.encode(csv);
-        final blob = html.Blob([bytes], 'text/csv');
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..setAttribute('download',
-              'collection_${DateTime.now().millisecondsSinceEpoch}.csv')
-          ..click();
-        html.Url.revokeObjectUrl(url);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.csvDownloadedBrowser)),
-        );
-      } else {
-        if (await Permission.storage.request().isDenied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(AppLocalizations.of(context)!.storagePermissionRequiredCsv)),
-          );
-          return;
-        }
-
-        Directory? directory;
-        try {
-          directory = await getDownloadsDirectory();
-          if (directory == null) {
-    throw Exception(AppLocalizations.of(context)!.downloadsDirectoryNotAvailable);
-}
-        } catch (e) {
-          directory = await getApplicationDocumentsDirectory();
-        }
-
-        final fileName =
-            'collection_${DateTime.now().millisecondsSinceEpoch}.csv';
-        final file = File('${directory.path}/$fileName');
-
-        await directory.create(recursive: true);
-        await file.writeAsString(csv);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.csvExportedTo.replaceFirst('{path}', file.path))),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.failedToExportCsv.replaceFirst('{error}', e.toString()))),
-      );
-    }
-  }
-
   String _getLocalizedFieldName(String key) {
   final localizations = AppLocalizations.of(context)!;
 
@@ -639,13 +573,7 @@ String getLocalizedFieldName(BuildContext context, String fieldName) {
    return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.collection),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.download),
-            onPressed: _exportToCsv,
-          ),
-        ],
-      ),
+              ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -727,6 +655,8 @@ class InvoiceWebViewScreen extends StatelessWidget {
   }
 }
 
+
+
 class ReportsScreen extends StatefulWidget {
   @override
   _ReportsScreenState createState() => _ReportsScreenState();
@@ -738,24 +668,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
   String? selectedDate;
 
   String getLocalizedField(String key) {
-  switch (key) {
-    case "Name":
-      return AppLocalizations.of(context)!.name;
-    case "Age":
-      return AppLocalizations.of(context)!.age;
-    case "Number":
-      return AppLocalizations.of(context)!.number;
-    case "Amount":
-      return AppLocalizations.of(context)!.amount;
-    case "Address":
-      return AppLocalizations.of(context)!.address;
-    case "date":
-      return AppLocalizations.of(context)!.date;
-    default:
-      return key;
+    switch (key) {
+      case "Name":
+        return AppLocalizations.of(context)!.name;
+      case "Age":
+        return AppLocalizations.of(context)!.age;
+      case "Number":
+        return AppLocalizations.of(context)!.number;
+      case "Amount":
+        return AppLocalizations.of(context)!.amount;
+      case "Address":
+        return AppLocalizations.of(context)!.address;
+      case "date":
+        return AppLocalizations.of(context)!.date;
+      default:
+        return key;
+    }
   }
-}
-
 
   @override
   void initState() {
@@ -766,7 +695,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   void _storeDummyData() {
     DateTime yesterday = DateTime.now().subtract(Duration(days: 1));
-    // ignore: unused_local_variable
     String formattedDate = DateFormat('yyyy-MM-dd').format(yesterday);
     List<dynamic>? existingData = collectionBox.get('data');
 
@@ -789,6 +717,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     String yesterday = DateFormat('yyyy-MM-dd')
         .format(DateTime.now().subtract(Duration(days: 1)));
+    DateTime now = DateTime.now();
 
     List<dynamic>? storedData = collectionBox.get('data');
     List<Map<String, String>> collectionInfo = (storedData ?? [])
@@ -811,74 +740,100 @@ class _ReportsScreenState extends State<ReportsScreen> {
           .where((entry) =>
               entry["date"]?.toString().startsWith(yesterday) ?? false)
           .toList();
+    } else if (selectedFilter == "This Week") {
+      int daysToSubtract = now.weekday - 1;
+      if (daysToSubtract < 0) daysToSubtract = 6;
+      DateTime weekStart = DateTime(now.year, now.month, now.day - daysToSubtract);
+      String weekStartStr = DateFormat('yyyy-MM-dd').format(weekStart);
+
+      return collectionInfo.where((entry) {
+        String date = entry["date"] ?? "";
+        return date.compareTo(weekStartStr) >= 0 &&
+            date.compareTo(today + " 23:59:59") <= 0;
+      }).toList();
+    } else if (selectedFilter == "This Month") {
+      DateTime monthStart = DateTime(now.year, now.month, 1);
+      String monthStartStr = DateFormat('yyyy-MM-dd').format(monthStart);
+
+      return collectionInfo.where((entry) {
+        String date = entry["date"] ?? "";
+        return date.compareTo(monthStartStr) >= 0 &&
+            date.compareTo(today + " 23:59:59") <= 0;
+      }).toList();
     }
 
     return collectionInfo;
   }
 
   void _showDateDataPopup(String selectedDate) {
-  List<Map<String, String>> filteredData = getFilteredCollectionInfo(specificDate: selectedDate);
-  
-  // Convert selectedDate format for display
-  String displayDate = DateFormat('dd-MMM-yyyy').format(DateFormat('yyyy-MM-dd').parse(selectedDate));
+    List<Map<String, String>> filteredData =
+        getFilteredCollectionInfo(specificDate: selectedDate);
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (context) {
-      return Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
+    String displayDate =
+        DateFormat('dd-MMM-yyyy').format(DateFormat('yyyy-MM-dd').parse(selectedDate));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
                 "${AppLocalizations.of(context)!.data_for} $displayDate",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            SizedBox(height: 10),
-            filteredData.isNotEmpty
-                ? SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: filteredData.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          margin: EdgeInsets.symmetric(vertical: 4.0),
-                          child: ListTile(
-                            title: Text(
+              SizedBox(height: 10),
+              filteredData.isNotEmpty
+                  ? SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: filteredData.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 4.0),
+                            child: ListTile(
+                              title: Text(
                                 "${AppLocalizations.of(context)!.entry} ${index + 1}",
                               ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: filteredData[index]
-  .entries
-  .map((e) {
-    String label = getLocalizedField(e.key);
-    String value = e.key == "date"
-      ? DateFormat('dd-MMM-yyyy HH:mm:ss').format(DateFormat('yyyy-MM-dd HH:mm:ss').parse(e.value))
-      : e.value;
-    return Text('$label: $value');
-  })
-  .toList(),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: filteredData[index].entries.map((e) {
+                                  String label = getLocalizedField(e.key);
+                                  String value = e.key == "date"
+                                      ? DateFormat('dd-MMM-yyyy HH:mm:ss').format(
+                                          DateFormat('yyyy-MM-dd HH:mm:ss')
+                                              .parse(e.value))
+                                      : e.value;
+                                  return Text('$label: $value');
+                                }).toList(),
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                : Center(
+                          );
+                        },
+                      ),
+                    )
+                  : Center(
                       child: Text(AppLocalizations.of(context)!.no_data_available),
                     ),
-          ],
-        ),
-      );
-    },
-  );
-}
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _exportSpecificDateData(String date) {
+    List<Map<String, String>> filteredData = getFilteredCollectionInfo(specificDate: date);
+    String displayDate = DateFormat('dd-MMM-yyyy').format(DateFormat('yyyy-MM-dd').parse(date));
+    exportToCSV(context, filteredData, displayDate);
+  }
 
   Future<void> _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -896,207 +851,253 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    List<Map<String, String>> collectionInfo = getFilteredCollectionInfo();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.reports),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: _pickDate,
-              child: Text(selectedDate ?? AppLocalizations.of(context)!.select_date),
-            ),
-            SizedBox(height: 16),
-            Wrap(
-  spacing: 12, // Increased space between buttons
-  runSpacing: 12, // Space between wrapped lines
-  alignment: WrapAlignment.center,
-  children: [
-    _filterButton(AppLocalizations.of(context)!.today),
-    _filterButton(AppLocalizations.of(context)!.yesterday),
-    _filterButton(AppLocalizations.of(context)!.this_week),
-    _filterButton(AppLocalizations.of(context)!.this_month),
-  ],
-),
+@override
+Widget build(BuildContext context) {
+  List<Map<String, String>> collectionInfo = getFilteredCollectionInfo();
 
-            SizedBox(height: 16),
-            _buildSummaryGrid(collectionInfo), // Updated type
-            SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-  AppLocalizations.of(context)!.recent_collection,
-  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-),
-            ),
-            SizedBox(height: 8),
-            Expanded(
-              child: collectionInfo.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: collectionInfo.length,
-                      itemBuilder: (context, index) {
-                        return _listItem(collectionInfo[index], index);
-                      },
-                    )
-                  : Center(
-                      child: Text(
-                        AppLocalizations.of(context)!.no_data_available,
-                      ),
-                    ),
-            ),
-          ],
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(AppLocalizations.of(context)!.reports),
+      centerTitle: true,
+      backgroundColor: Colors.blue,
+      actions: [
+        IconButton(
+          icon: Icon(Icons.download),
+          tooltip: 'Export to CSV',
+          onPressed: () {
+            if (selectedDate != null) {
+              _exportSpecificDateData(selectedDate!);
+            } else {
+              exportToCSV(context, collectionInfo, selectedFilter);
+            }
+          },
         ),
+      ],
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          ElevatedButton(
+            onPressed: _pickDate,
+            child: Text(selectedDate ?? AppLocalizations.of(context)!.select_date),
+          ),
+          SizedBox(height: 16),
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _filterButton(AppLocalizations.of(context)!.today),
+                  _filterButton(AppLocalizations.of(context)!.yesterday),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _filterButton(AppLocalizations.of(context)!.this_week),
+                  _filterButton(AppLocalizations.of(context)!.this_month),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          _buildSummaryGrid(collectionInfo),
+          SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              AppLocalizations.of(context)!.recent_collection,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
+          ),
+          SizedBox(height: 8),
+          Expanded(
+            child: collectionInfo.isNotEmpty
+                ? ListView.builder(
+                    itemCount: collectionInfo.length,
+                    itemBuilder: (context, index) {
+                      return _listItem(collectionInfo[index], index);
+                    },
+                  )
+                : Center(
+                    child: Text(
+                      AppLocalizations.of(context)!.no_data_available,
+                    ),
+                  ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildSummaryGrid(List<Map<String, String>> collectionInfo) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 4,
-      physics: NeverScrollableScrollPhysics(),
-      children: [
-  _summaryCard(AppLocalizations.of(context)!.total_collection, _calculateTotal(collectionInfo, "count")),
-  _summaryCard(AppLocalizations.of(context)!.previous_collection, _calculatePreviousTotal()),
-  _summaryCard(AppLocalizations.of(context)!.total_clients, _calculateTotalClients(collectionInfo)),
-  _summaryCard(AppLocalizations.of(context)!.total_payments, _calculateTotalPayments(collectionInfo)),
-],
+Widget _buildSummaryGrid(List<Map<String, String>> collectionInfo) {
+  return GridView.count(
+    crossAxisCount: 2,
+    shrinkWrap: true,
+    crossAxisSpacing: 16,
+    mainAxisSpacing: 16,
+    childAspectRatio: 3.5,
+    physics: NeverScrollableScrollPhysics(),
+    children: [
+      _summaryCard(AppLocalizations.of(context)!.total_collection,
+          _calculateTotal(collectionInfo, "count")),
+      _summaryCard(AppLocalizations.of(context)!.previous_collection,
+          _calculatePreviousTotal()),
+      _summaryCard(AppLocalizations.of(context)!.total_clients,
+          _calculateTotalClients(collectionInfo)),
+      _summaryCard(AppLocalizations.of(context)!.total_payments,
+          _calculateTotalPayments(collectionInfo)),
+    ],
+  );
+}
 
-    );
-  }
+String _calculateTotal(List<Map<String, String>> collectionInfo, String key) {
+  return collectionInfo.length.toString();
+}
 
-  String _calculateTotal(List<Map<String, String>> collectionInfo, String key) {
-    return collectionInfo.length.toString();
-  }
+String _calculateTotalPayments(List<Map<String, String>> collectionInfo) {
+  double total = collectionInfo.fold(0.0, (sum, item) {
+    return sum + (double.tryParse(item["Amount"] ?? '0') ?? 0.0);
+  });
+  return total.toStringAsFixed(2);
+}
 
-  String _calculateTotalPayments(List<Map<String, String>> collectionInfo) {
-    double total = collectionInfo.fold(0.0, (sum, item) {
-      return sum + (double.tryParse(item["Amount"] ?? '0') ?? 0.0);
-    });
-    return total.toStringAsFixed(2);
-  }
+String _calculatePreviousTotal() {
+  DateTime now = DateTime.now();
+  List<dynamic>? storedData = collectionBox.get('data');
+  List<Map<String, String>> collectionInfo = (storedData ?? [])
+      .map((item) => Map<String, String>.from(item as Map))
+      .toList();
 
-  String _calculatePreviousTotal() {
-    DateTime now = DateTime.now();
-    List<dynamic>? storedData = collectionBox.get('data');
-    List<Map<String, String>> collectionInfo = (storedData ?? [])
-        .map((item) => Map<String, String>.from(item as Map))
-        .toList();
+  String filterDate = "";
 
-    String filterDate = "";
-
-    if (selectedFilter == "Today") {
-      DateTime yesterday = now.subtract(Duration(days: 1));
-      filterDate = DateFormat('yyyy-MM-dd').format(yesterday);
-    } else if (selectedFilter == "Yesterday") {
-      DateTime lastWeekSameDay = now.subtract(Duration(days: 7));
-      filterDate = DateFormat('yyyy-MM-dd').format(lastWeekSameDay);
-    } else if (selectedFilter == "This Week") {
-      DateTime lastMonday = now.subtract(Duration(days: now.weekday + 6));
-      DateTime lastSunday = lastMonday.add(Duration(days: 6));
-      return collectionInfo
-          .where((entry) {
-            String date = entry["date"] ?? "";
-            return date.compareTo(DateFormat('yyyy-MM-dd').format(lastMonday)) >= 0 &&
-                date.compareTo(DateFormat('yyyy-MM-dd').format(lastSunday)) <= 0;
-          })
-          .length
-          .toString();
-    } else if (selectedFilter == "This Month") {
-      DateTime firstDayPrevMonth = DateTime(now.year, now.month - 1, 1);
-      DateTime lastDayPrevMonth = DateTime(now.year, now.month, 0);
-      return collectionInfo
-          .where((entry) {
-            String date = entry["date"] ?? "";
-            return date.compareTo(DateFormat('yyyy-MM-dd').format(firstDayPrevMonth)) >= 0 &&
-                date.compareTo(DateFormat('yyyy-MM-dd').format(lastDayPrevMonth)) <= 0;
-          })
-          .length
-          .toString();
-    }
-
+  if (selectedFilter == "Today") {
+    DateTime yesterday = now.subtract(Duration(days: 1));
+    filterDate = DateFormat('yyyy-MM-dd').format(yesterday);
+  } else if (selectedFilter == "Yesterday") {
+    DateTime lastWeekSameDay = now.subtract(Duration(days: 7));
+    filterDate = DateFormat('yyyy-MM-dd').format(lastWeekSameDay);
+  } else if (selectedFilter == "This Week") {
+    DateTime lastMonday = now.subtract(Duration(days: now.weekday + 6));
+    DateTime lastSunday = lastMonday.add(Duration(days: 6));
     return collectionInfo
-        .where((entry) => entry["date"]?.startsWith(filterDate) ?? false)
+        .where((entry) {
+          String date = entry["date"] ?? "";
+          return date.compareTo(DateFormat('yyyy-MM-dd').format(lastMonday)) >=
+                  0 &&
+              date.compareTo(DateFormat('yyyy-MM-dd').format(lastSunday)) <= 0;
+        })
+        .length
+        .toString();
+  } else if (selectedFilter == "This Month") {
+    DateTime firstDayPrevMonth = DateTime(now.year, now.month - 1, 1);
+    DateTime lastDayPrevMonth = DateTime(now.year, now.month, 0);
+    return collectionInfo
+        .where((entry) {
+          String date = entry["date"] ?? "";
+          return date.compareTo(
+                      DateFormat('yyyy-MM-dd').format(firstDayPrevMonth)) >=
+                  0 &&
+              date.compareTo(DateFormat('yyyy-MM-dd').format(lastDayPrevMonth)) <=
+                  0;
+        })
         .length
         .toString();
   }
 
-  String _calculateTotalClients(List<Map<String, String>> collectionInfo) {
-    Set<String> uniqueClients = {};
-    for (var entry in collectionInfo) {
-      String? clientName = entry["Name"]?.trim();
-      String? mobileNumber = entry["Number"]?.trim();
-      if (clientName != null && mobileNumber != null && clientName.isNotEmpty && mobileNumber.isNotEmpty) {
-        uniqueClients.add("$clientName|$mobileNumber");
-      }
+  return collectionInfo
+      .where((entry) => entry["date"]?.startsWith(filterDate) ?? false)
+      .length
+      .toString();
+}
+
+String _calculateTotalClients(List<Map<String, String>> collectionInfo) {
+  Set<String> uniqueClients = {};
+  for (var entry in collectionInfo) {
+    String? clientName = entry["Name"]?.trim();
+    String? mobileNumber = entry["Number"]?.trim();
+    if (clientName != null &&
+        mobileNumber != null &&
+        clientName.isNotEmpty &&
+        mobileNumber.isNotEmpty) {
+      uniqueClients.add("$clientName|$mobileNumber");
     }
-    return uniqueClients.length.toString();
   }
+  return uniqueClients.length.toString();
+}
 
-  Widget _summaryCard(String title, String value) {
-    return Container(
-      padding: EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 2,
-            offset: Offset(1, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            title,
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 13),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 2),
-          Text(
-            value,
-            style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _filterButton(String text) {
-  return ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Bigger padding
-      backgroundColor: selectedFilter == text ? Colors.blue : Colors.grey[300],
-      foregroundColor: selectedFilter == text ? Colors.white : Colors.black,
-      textStyle: TextStyle(fontSize: 14), // Bigger font
+Widget _summaryCard(String title, String value) {
+  return Container(
+    padding: EdgeInsets.all(6),
+    decoration: BoxDecoration(
+      color: Colors.grey[300],
+      borderRadius: BorderRadius.circular(8),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 2,
+          offset: Offset(1, 1),
+        ),
+      ],
     ),
-    onPressed: () {
-      setState(() {
-        selectedFilter = text;
-        selectedDate = null;
-      });
-    },
-    child: Text(text),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+              color: Colors.black, fontWeight: FontWeight.w600, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+              color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+      ],
+    ),
   );
 }
 
+// 👇 Reduced width for filter buttons
+Widget _filterButton(String text) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+    child: SizedBox(
+      width: 80, // Reduced width
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          backgroundColor: selectedFilter == text ? Colors.blue : Colors.grey[300],
+          foregroundColor: selectedFilter == text ? Colors.white : Colors.black,
+          textStyle: TextStyle(fontSize: 12),
+        ),
+        onPressed: () {
+          setState(() {
+            selectedFilter = text;
+            selectedDate = null;
+          });
+        },
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ),
+  );
+}
 
-  Widget _listItem(Map<String, String> item, int index) {
+Widget _listItem(Map<String, String> item, int index) {
   return Card(
     margin: EdgeInsets.symmetric(vertical: 4.0),
     child: ListTile(
